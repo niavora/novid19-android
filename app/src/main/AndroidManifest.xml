@@ -11,7 +11,8 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.QR_NIAVO">
-        <activity android:name=".monqrcode"></activity>
+        <activity android:name=".AccueilActivity"></activity>
+        <activity android:name=".ListeTest" />
         <activity
             android:name=".MainActivity"
             android:exported="true">

@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">QR CODE</string>
+    <string name="description_acc">Pour commencer votre parcours avec #Novid19 veuillez d\'abord scanner le QR code présent sur un document (test/carte de vaccination) pour la configuration de l'application</string>
 </resources>
