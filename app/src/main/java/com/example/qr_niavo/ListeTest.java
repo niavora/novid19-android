@@ -27,6 +27,13 @@ public class ListeTest extends AppCompatActivity {
 
     }
     private void initView(){
+        try{
+            this.getSupportActionBar().hide();
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
+
         this.listView=(ListView)findViewById(R.id.listeview);
         this.listeTest=new ArrayList<>();
         this.ctx=this;

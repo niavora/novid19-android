@@ -2,15 +2,371 @@ package com.example.qr_niavo;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.Intent;
+import android.graphics.Color;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import com.example.qr_niavo.Managers.HttpHandler;
+import com.example.qr_niavo.Models.Personne;
+import com.example.qr_niavo.Service.Session;
+import com.google.zxing.integration.android.IntentIntegrator;
+import com.google.zxing.integration.android.IntentResult;
+
+import org.apache.http.message.BasicNameValuePair;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.w3c.dom.Text;
+
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
+
+import cn.pedant.SweetAlert.SweetAlertDialog;
 
 public class AccueilActivity extends AppCompatActivity {
-
+    TextView nom;
+    Session sh;
+    Personne p;
+    LinearLayout scanTest,scanCarte,scanLieux;
+    /*
+        0:TEST
+        1:VACCIN
+        2:LIEU
+    * **/
+    int origine;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.accueil);
+        initView();
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+
+        //EVENT
+        onClick();
+    }
+
+    private void initView(){
+        try{
+            this.getSupportActionBar().hide();
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
+        scanTest=(LinearLayout)findViewById(R.id.scan_test);
+        scanCarte=(LinearLayout)findViewById(R.id.scan_vaccin);
+        scanLieux=(LinearLayout)findViewById(R.id.scan_lieux);
+
+
+        sh=new Session(this);
+        p=null;
+        p=sh.getUser();
+
+        nom=(TextView)findViewById(R.id.nom);
+        nom.setText(p.getNom()+" "+p.getPrenom());
+        //ORIGINE CLICK
+        origine=-1;
+    }
+
+    private void onClick(){
+        scanTest.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                origine=0;
+                initScan();
+            }
+        });
+        scanCarte.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                origine=1;
+                initScan();
+            }
+        });
+        scanLieux.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                origine=2;
+                initScan();
+            }
+        });
     }
 
 
+    private void initScan() {
+        //Initialisation <CAMERA QR CODE>
+        IntentIntegrator integrator = new IntentIntegrator(this);
+        integrator.setOrientationLocked(true);
+        integrator.setDesiredBarcodeFormats(IntentIntegrator.QR_CODE);
+      /*  integrator.setCaptureActivity(Qr_Activity.class);
+        integrator.setPrompt("Scannez le Qr Code");*/
+        integrator.initiateScan();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        //Data: données dans le QR CODE
+
+        if (data != null) {
+            IntentResult intentResult = IntentIntegrator.parseActivityResult(requestCode, resultCode, data);
+            if (intentResult == null) {
+                Toast.makeText(this, "QR CODE incorrect", Toast.LENGTH_SHORT).show();
+                //Utility.ShowToast(this,"QR CODE incorrect");
+            } else {
+                String resultat = null;
+                resultat = intentResult.getContents();
+                //resultat : Texte dans le QR CODE
+                if (resultat != null) {
+
+                        try {
+                            if(origine==0 || origine==1){
+                                new TestOrVaccin(resultat).execute();
+                            }
+                            else if(origine==2){
+                                //POST
+                                new PostLieu(resultat).execute();
+                            }
+
+                        } catch (Exception e) {
+                            Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
+                        }
+
+                }
+
+            }
+        }
+
+    }
+
+
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        sh.deleteSession();
+        this.finish();
+        Intent intent=new Intent(AccueilActivity.this,MainActivity.class);
+        startActivity(intent);
+    }
+
+
+    //CALL TEST OR VACCIN
+    private class TestOrVaccin extends AsyncTask<Void,Void, JSONObject> {
+        SweetAlertDialog pDialog = new SweetAlertDialog(AccueilActivity.this, SweetAlertDialog.PROGRESS_TYPE);
+        String userId;
+        TestOrVaccin(String id){
+            userId=id;
+        }
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            pDialog.getProgressHelper().setBarColor(Color.parseColor("#66ccff"));
+            pDialog.setTitleText("Chargement");
+            pDialog.setCancelable(false);
+            pDialog.show();
+        }
+
+        @Override
+        protected JSONObject doInBackground(Void... voids) {
+            List params = new ArrayList();
+            //PARAMS : Key - value
+            // params.add(new BasicNameValuePair("key", value));
+
+            HttpHandler handler = new HttpHandler();
+
+            //Host : EndPoint
+            String url=Config.HOST;
+            if(origine==0){
+                url+=Config.TESTSCAN;
+            }
+            else if(origine==1){
+                url+=Config.VACCINSCAN;
+            }
+            url+=userId;
+
+            System.out.println("USERID"+userId);
+            String apiResponse = handler.getHttp(url);
+            System.out.println("API RESPONSE"+apiResponse);
+
+            try {
+                if(apiResponse!=null){
+                    return new JSONObject(apiResponse);
+                }
+                else {
+                    throw new JSONException("JSON vide");
+                }
+
+            } catch (JSONException e) {
+                Log.e("Exception json",e.getMessage().toString());
+                e.printStackTrace();
+                return null;
+            }
+        }
+
+        @Override
+        protected void onPostExecute(JSONObject result) {
+            super.onPostExecute(result);
+
+            if(pDialog!=null){
+                pDialog.dismissWithAnimation();
+            }
+
+            //Result is null
+
+            if(result==null){
+                Toast.makeText(AccueilActivity.this, "Erreur", Toast.LENGTH_SHORT).show();
+            }
+
+            else{
+                //TREATMENT & REDIRECTION
+                try {
+
+
+                    //COMPARAISON IDUSER
+                    if(origine==0){
+                        String _idUser=result.getString("personne_id");
+                        if(_idUser.equals(p.getId())){
+                            String centre_id=result.getString("centre_id");
+                            String etat_test=result.getString("etat_test");
+                            String datetest=result.getString("date_test");
+
+
+                            AccueilActivity.this.finish();
+
+                            Intent intent=new Intent(AccueilActivity.this,Resultat.class);
+                            intent.putExtra("centre_id",centre_id);
+                            intent.putExtra("etat_test",etat_test);
+                            intent.putExtra("date_test",datetest);
+                            intent.putExtra("origine",origine);
+
+                            startActivity(intent);
+                        }
+                        else{
+                            throw new Exception("Ce test n'est pas à vous");
+                        }
+                    }
+                    else if(origine==1){
+                        String centre_id=result.getString("centre_id");
+                        String nomvaccin=result.getString("nom_vaccin");
+                        String date_vaccin=result.getString("date_vaccin");
+
+
+                        AccueilActivity.this.finish();
+
+                        Intent intent=new Intent(AccueilActivity.this,Resultat.class);
+                        intent.putExtra("centre_id",centre_id);
+                        intent.putExtra("nom_vaccin",nomvaccin);
+                        intent.putExtra("date_vaccin",date_vaccin);
+                        intent.putExtra("origine",origine);
+                        startActivity(intent);
+                    }
+                    else{
+
+                    }
+
+
+
+                } catch (Exception e) {
+                    Toast.makeText(AccueilActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
+                    e.printStackTrace();
+                }
+
+            }
+        }
+    }
+
+    //CALL POST
+    private class PostLieu extends AsyncTask<Void,Void,JSONObject>{
+        SweetAlertDialog pDialog = new SweetAlertDialog(AccueilActivity.this, SweetAlertDialog.PROGRESS_TYPE);
+        String lieuId;
+        PostLieu(String id){
+            lieuId=id;
+        }
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            pDialog.getProgressHelper().setBarColor(Color.parseColor("#66ccff"));
+            pDialog.setTitleText("Chargement");
+            pDialog.setCancelable(false);
+            pDialog.show();
+        }
+
+        @Override
+        protected JSONObject doInBackground(Void... voids) {
+            String pattern = "dd-MM-yyyy";
+            DateFormat df = new SimpleDateFormat(pattern);
+            Date today = Calendar.getInstance().getTime();
+            String datePassage= df.format(today);
+
+
+            List params = new ArrayList();
+            //PARAMS : Key - value
+
+           params.add(new BasicNameValuePair("lieuID", lieuId));
+           params.add(new BasicNameValuePair("personneID", p.getId()));
+           params.add(new BasicNameValuePair("datePassage", datePassage));
+
+
+            System.out.println("Lieu Id"+lieuId);
+            System.out.println("Personne Id"+p.getId());
+            System.out.println("Date de passeage"+datePassage);
+
+            HttpHandler handler = new HttpHandler();
+
+            //Host : EndPoint
+            String url=Config.HOST+Config.LIEU;
+
+            String apiResponse = handler.PostHttp(url,(ArrayList<BasicNameValuePair>) params);
+            System.out.println("API RESPONSE"+apiResponse);
+
+            try {
+                if(apiResponse!=null){
+                    return new JSONObject(apiResponse);
+                }
+                else {
+                    throw new JSONException("JSON vide");
+                }
+
+            } catch (JSONException e) {
+                Log.e("Exception json",e.getMessage().toString());
+                e.printStackTrace();
+                return null;
+            }
+        }
+
+        @Override
+        protected void onPostExecute(JSONObject jsonObject) {
+            super.onPostExecute(jsonObject);
+            if(pDialog!=null){
+                pDialog.dismissWithAnimation();
+            }
+            if(jsonObject!=null){
+                    SweetAlertDialog sw=new SweetAlertDialog(AccueilActivity.this,SweetAlertDialog.SUCCESS_TYPE);
+                    sw.setTitleText("Succès");
+                    sw.setContentText("Lieu sauvegardé");
+                    sw.setCanceledOnTouchOutside(false);
+
+                    sw.show();
+            }
+            else{
+                Toast.makeText(AccueilActivity.this, "Erreur", Toast.LENGTH_SHORT).show();
+            }
+
+        }
+    }
 }

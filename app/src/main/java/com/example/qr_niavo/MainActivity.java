@@ -12,6 +12,7 @@ import android.widget.Button;
 import android.widget.Toast;
 
 import com.example.qr_niavo.Managers.HttpHandler;
+import com.example.qr_niavo.Service.Session;
 import com.google.zxing.integration.android.IntentIntegrator;
 import com.google.zxing.integration.android.IntentResult;
 
@@ -26,6 +27,7 @@ import cn.pedant.SweetAlert.SweetAlertDialog;
 
 public class MainActivity extends AppCompatActivity {
     Button scan_qr;
+    Session sh;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -48,6 +50,7 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
         this.scan_qr=(Button)findViewById(R.id.scan_qr);
+        sh=new Session(this);
     }
 
     private void onClick(){
@@ -86,8 +89,7 @@ public class MainActivity extends AppCompatActivity {
                 //resultat : Texte dans le QR CODE
                 if (resultat != null) {
                     try {
-                        Toast.makeText(this, "RESULTAT"+resultat, Toast.LENGTH_SHORT).show();
-                        new AfterScan().execute();
+                        new AfterScan(resultat).execute();
                     } catch (Exception e) {
                         Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
                     }
@@ -102,9 +104,9 @@ public class MainActivity extends AppCompatActivity {
 
     private class AfterScan extends AsyncTask<Void,Void, JSONObject>{
         SweetAlertDialog pDialog = new SweetAlertDialog(MainActivity.this, SweetAlertDialog.PROGRESS_TYPE);
-
-        AfterScan(){
-
+        String userId;
+        AfterScan(String id){
+            userId=id;
         }
 
         @Override
@@ -125,7 +127,9 @@ public class MainActivity extends AppCompatActivity {
             HttpHandler handler = new HttpHandler();
 
             //Host : EndPoint
-            String apiResponse = handler.PostHttp(Config.HOST, (ArrayList<BasicNameValuePair>) params);
+            String url=Config.HOST+Config.AUTHENTIFICATION+userId;
+            String apiResponse = handler.getHttp(url);
+            System.out.println("API RESPONSE"+apiResponse);
 
             try {
                 if(apiResponse!=null){
@@ -158,6 +162,16 @@ public class MainActivity extends AppCompatActivity {
 
             else{
                     //TREATMENT & REDIRECTION
+                try {
+                    sh.saveUser(result);
+                    MainActivity.this.finish();
+                    Intent intent=new Intent(MainActivity.this,AccueilActivity.class);
+                    startActivity(intent);
+                    
+                } catch (JSONException e) {
+                    Toast.makeText(MainActivity.this, "Erreur", Toast.LENGTH_SHORT).show();
+                    e.printStackTrace();
+                }
 
             }
         }
