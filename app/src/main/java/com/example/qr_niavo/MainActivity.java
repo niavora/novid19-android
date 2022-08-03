@@ -3,13 +3,26 @@ package com.example.qr_niavo;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
+import android.graphics.Color;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
+import com.example.qr_niavo.Managers.HttpHandler;
 import com.google.zxing.integration.android.IntentIntegrator;
 import com.google.zxing.integration.android.IntentResult;
+
+import org.apache.http.message.BasicNameValuePair;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import cn.pedant.SweetAlert.SweetAlertDialog;
 
 public class MainActivity extends AppCompatActivity {
     Button scan_qr;
@@ -74,7 +87,7 @@ public class MainActivity extends AppCompatActivity {
                 if (resultat != null) {
                     try {
                         Toast.makeText(this, "RESULTAT"+resultat, Toast.LENGTH_SHORT).show();
-
+                        new AfterScan().execute();
                     } catch (Exception e) {
                         Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
                     }
@@ -83,6 +96,71 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
+    }
+
+
+
+    private class AfterScan extends AsyncTask<Void,Void, JSONObject>{
+        SweetAlertDialog pDialog = new SweetAlertDialog(MainActivity.this, SweetAlertDialog.PROGRESS_TYPE);
+
+        AfterScan(){
+
+        }
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            pDialog.getProgressHelper().setBarColor(Color.parseColor("#66ccff"));
+            pDialog.setTitleText("Chargement");
+            pDialog.setCancelable(false);
+            pDialog.show();
+        }
+
+        @Override
+        protected JSONObject doInBackground(Void... voids) {
+            List params = new ArrayList();
+            //PARAMS : Key - value
+           // params.add(new BasicNameValuePair("key", value));
+
+            HttpHandler handler = new HttpHandler();
+
+            //Host : EndPoint
+            String apiResponse = handler.PostHttp(Config.HOST, (ArrayList<BasicNameValuePair>) params);
+
+            try {
+                if(apiResponse!=null){
+                    return new JSONObject(apiResponse);
+                }
+                else {
+                    throw new JSONException("JSON vide");
+                }
+
+            } catch (JSONException e) {
+                Log.e("Exception json",e.getMessage().toString());
+                e.printStackTrace();
+                return null;
+            }
+        }
+
+        @Override
+        protected void onPostExecute(JSONObject result) {
+            super.onPostExecute(result);
+
+            if(pDialog!=null){
+                pDialog.dismissWithAnimation();
+            }
+
+            //Result is null
+
+            if(result==null){
+                Toast.makeText(MainActivity.this, "Erreur", Toast.LENGTH_SHORT).show();
+            }
+
+            else{
+                    //TREATMENT & REDIRECTION
+
+            }
+        }
     }
 
 }

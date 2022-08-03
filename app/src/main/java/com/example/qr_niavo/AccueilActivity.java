@@ -11,4 +11,6 @@ public class AccueilActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.accueil);
     }
+
+
 }
