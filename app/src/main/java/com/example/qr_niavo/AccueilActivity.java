@@ -13,6 +13,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.qr_niavo.Adaptor.ListeLieuAdaptor;
 import com.example.qr_niavo.Managers.HttpHandler;
 import com.example.qr_niavo.Models.Personne;
 import com.example.qr_niavo.Service.Session;
@@ -30,6 +31,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 
 import cn.pedant.SweetAlert.SweetAlertDialog;
@@ -39,6 +41,12 @@ public class AccueilActivity extends AppCompatActivity {
     Session sh;
     Personne p;
     LinearLayout scanTest,scanCarte,scanLieux,historiqueLieu,historiqueTest,historiqueVaccin;
+    HashMap<String,String > lieuMap;
+    int lieuPartenaires;
+    int casPositif;
+    int testEffectue;
+    TextView testChiffre, lieuChiffre,positifChiffre;
+
     /*
         0:TEST
         1:VACCIN
@@ -63,9 +71,13 @@ public class AccueilActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
+        new getListeLieu().execute();
+
 
         //EVENT
         onClick();
+
+
     }
 
     private void initView(){
@@ -81,7 +93,14 @@ public class AccueilActivity extends AppCompatActivity {
         historiqueLieu=(LinearLayout)findViewById(R.id.historique_lieu);
         historiqueTest=(LinearLayout)findViewById(R.id.historique_test);
         historiqueVaccin=(LinearLayout)findViewById(R.id.historique_vaccin);
+        testChiffre=(TextView)findViewById(R.id.test_chiffre);
+        positifChiffre=(TextView)findViewById(R.id.positif_chiffre);
+        lieuChiffre=(TextView)findViewById(R.id.lieux_chiffre);
 
+        lieuMap=new HashMap<>();
+        casPositif=0;
+        testEffectue=0;
+        lieuPartenaires=0;
 
         sh=new Session(this);
         p=null;
@@ -520,6 +539,176 @@ public class AccueilActivity extends AppCompatActivity {
                 } catch (Exception e) {
                     Toast.makeText(AccueilActivity.this, "Erreur", Toast.LENGTH_SHORT).show();
                     e.printStackTrace();
+                }
+
+            }
+        }
+    }
+
+
+
+    //APPEL API LIEU
+    private class getListeLieu extends AsyncTask<Void,Void, JSONObject>{
+        SweetAlertDialog pDialog = new SweetAlertDialog(AccueilActivity.this, SweetAlertDialog.PROGRESS_TYPE);
+        getListeLieu(){
+        }
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            pDialog.getProgressHelper().setBarColor(Color.parseColor("#66ccff"));
+            pDialog.setTitleText("Chargement");
+            pDialog.setCancelable(false);
+            pDialog.show();
+        }
+
+        @Override
+        protected JSONObject doInBackground(Void... voids) {
+            List params = new ArrayList();
+            //PARAMS : Key - value
+            // params.add(new BasicNameValuePair("key", value));
+
+            HttpHandler handler = new HttpHandler();
+
+            //Host : EndPoint
+            String url=Config.HOST+Config.LIEU;
+
+            String apiResponse = handler.getHttp(url);
+            System.out.println("API RESPONSE"+apiResponse);
+
+            try {
+                if(apiResponse!=null){
+                    return new JSONObject(apiResponse);
+                }
+                else {
+                    throw new JSONException("JSON vide");
+                }
+
+            } catch (JSONException e) {
+                Log.e("Exception json",e.getMessage().toString());
+                e.printStackTrace();
+                return null;
+            }
+        }
+
+        @Override
+        protected void onPostExecute(JSONObject result) {
+            super.onPostExecute(result);
+
+            if(pDialog!=null){
+                pDialog.dismissWithAnimation();
+            }
+
+            //Result is null
+
+            if(result==null){
+                Toast.makeText(AccueilActivity.this, "Erreur", Toast.LENGTH_SHORT).show();
+            }
+            else{
+                //TREATMENT & REDIRECTION
+                try {
+                    if(result.has("docs")){
+                        lieuMap=Utility.ListeLieu(result);
+                        lieuPartenaires=lieuMap.size();
+                        new getListeTest().execute();
+                    }
+                    else{
+                        throw new Exception("Aucun résultat");
+                    }
+
+
+
+
+                } catch (Exception e) {
+                    Log.e("Erreur",e.getMessage());
+                }
+
+            }
+        }
+    }
+
+    private class getListeTest extends AsyncTask<Void,Void, JSONObject>{
+        SweetAlertDialog pDialog = new SweetAlertDialog(AccueilActivity.this, SweetAlertDialog.PROGRESS_TYPE);
+        getListeTest(){
+        }
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+           /* pDialog.getProgressHelper().setBarColor(Color.parseColor("#66ccff"));
+            pDialog.setTitleText("Chargement");
+            pDialog.setCancelable(false);
+            pDialog.show();*/
+        }
+
+        @Override
+        protected JSONObject doInBackground(Void... voids) {
+            List params = new ArrayList();
+            //PARAMS : Key - value
+            // params.add(new BasicNameValuePair("key", value));
+
+            HttpHandler handler = new HttpHandler();
+
+            //Host : EndPoint
+            String url=Config.HOST+Config.HISTORIQUETEST;
+
+            String apiResponse = handler.getHttp(url);
+            System.out.println("API RESPONSE"+apiResponse);
+
+            try {
+                if(apiResponse!=null){
+                    return new JSONObject(apiResponse);
+                }
+                else {
+                    throw new JSONException("JSON vide");
+                }
+
+            } catch (JSONException e) {
+                Log.e("Exception json",e.getMessage().toString());
+                e.printStackTrace();
+                return null;
+            }
+        }
+
+        @Override
+        protected void onPostExecute(JSONObject result) {
+            super.onPostExecute(result);
+
+          /*  if(pDialog!=null){
+                pDialog.dismissWithAnimation();
+            }*/
+
+            //Result is null
+
+            if(result==null){
+                Toast.makeText(AccueilActivity.this, "Erreur", Toast.LENGTH_SHORT).show();
+            }
+            else{
+                //TREATMENT & REDIRECTION
+                try {
+                    if(result.has("docs")){
+                        JSONArray jo=result.getJSONArray("docs");
+                        testEffectue=jo.length();
+                        for (int i=0;i<jo.length();i++){
+                            JSONObject jsonObject=jo.getJSONObject(i);
+                            if(jsonObject.getInt("etat_test")==2){
+                                ++casPositif;
+                            }
+                        }
+
+                        lieuChiffre.setText(lieuPartenaires+"");
+                        testChiffre.setText(testEffectue+"");
+                        positifChiffre.setText(casPositif+"");
+                    }
+                    else{
+                        throw new Exception("Aucun résultat");
+                    }
+
+
+
+
+                } catch (Exception e) {
+                    Log.e("Erreur",e.getMessage());
                 }
 
             }

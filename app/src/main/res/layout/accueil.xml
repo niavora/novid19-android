@@ -95,7 +95,7 @@
                     android:textSize="25dp"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="2270"/>
+                    android:text="0"/>
                 <TextView
                     android:textColor="@color/black"
                     android:layout_width="wrap_content"
@@ -114,7 +114,7 @@
                     android:textSize="25dp"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="1852"/>
+                    android:text="0"/>
                 <TextView
                     android:textColor="@color/black"
                     android:layout_width="wrap_content"
@@ -133,7 +133,7 @@
                     android:textSize="25dp"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="120"/>
+                    android:text="0"/>
                 <TextView
                     android:textColor="@color/black"
                     android:layout_width="wrap_content"

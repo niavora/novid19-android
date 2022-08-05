@@ -90,7 +90,7 @@ public class MainActivity extends AppCompatActivity {
                 //resultat : Texte dans le QR CODE
                 if (resultat != null) {
                     try {
-                        new AfterScan(resultat).execute();
+                        new TEST(resultat).execute();
                     } catch (Exception e) {
                         Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
                     }
@@ -101,8 +101,7 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-
-
+//call 2
     private class AfterScan extends AsyncTask<Void,Void, JSONObject>{
         SweetAlertDialog pDialog = new SweetAlertDialog(MainActivity.this, SweetAlertDialog.PROGRESS_TYPE);
         String userId;
@@ -180,4 +179,89 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+
+    //call 1
+    private class TEST extends AsyncTask<Void,Void, JSONObject>{
+        SweetAlertDialog pDialog = new SweetAlertDialog(MainActivity.this, SweetAlertDialog.PROGRESS_TYPE);
+        String userId;
+        TEST(String id){
+            userId=id;
+        }
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            pDialog.getProgressHelper().setBarColor(Color.parseColor("#66ccff"));
+            pDialog.setTitleText("Chargement");
+            pDialog.setCancelable(false);
+            pDialog.show();
+        }
+
+        @Override
+        protected JSONObject doInBackground(Void... voids) {
+            List params = new ArrayList();
+            //PARAMS : Key - value
+            // params.add(new BasicNameValuePair("key", value));
+
+            HttpHandler handler = new HttpHandler();
+
+            //Host : EndPoint
+            String url=Config.HOST+Config.TESTSCAN+userId;
+            String apiResponse = handler.getHttp(url);
+            System.out.println("API RESPONSE"+apiResponse);
+
+            try {
+                if(apiResponse!=null){
+                    return new JSONObject(apiResponse);
+                }
+                else {
+                    throw new JSONException("JSON vide");
+                }
+
+            } catch (JSONException e) {
+                Log.e("Exception json",e.getMessage().toString());
+                e.printStackTrace();
+                return null;
+            }
+        }
+
+        @Override
+        protected void onPostExecute(JSONObject result) {
+            super.onPostExecute(result);
+
+            if(pDialog!=null){
+                pDialog.dismissWithAnimation();
+            }
+
+            //Result is null
+
+            if(result==null){
+                Toast.makeText(MainActivity.this, "Erreur", Toast.LENGTH_SHORT).show();
+            }
+
+            else{
+                //TREATMENT & REDIRECTION
+                try {
+                    if(result!=null){
+                        if(result.has("personne_id")){
+                            String personneid=result.getString("personne_id");
+                            new AfterScan(personneid).execute();
+                        }
+                        else{
+                            throw new Exception("Erreur API");
+                        }
+
+                    }
+                    else{
+
+                    }
+
+                } catch (Exception e) {
+                    Toast.makeText(MainActivity.this, "Erreur", Toast.LENGTH_SHORT).show();
+                    e.printStackTrace();
+                }
+
+            }
+        }
+    }
 }
