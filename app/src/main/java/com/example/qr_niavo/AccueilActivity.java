@@ -40,7 +40,7 @@ public class AccueilActivity extends AppCompatActivity {
     TextView nom;
     Session sh;
     Personne p;
-    LinearLayout scanTest,scanCarte,scanLieux,historiqueLieu,historiqueTest,historiqueVaccin;
+    LinearLayout scanTest,scanCarte,scanLieux,historiqueLieu,historiqueTest,historiqueVaccin,notification;
     HashMap<String,String > lieuMap;
     int lieuPartenaires;
     int casPositif;
@@ -96,6 +96,7 @@ public class AccueilActivity extends AppCompatActivity {
         testChiffre=(TextView)findViewById(R.id.test_chiffre);
         positifChiffre=(TextView)findViewById(R.id.positif_chiffre);
         lieuChiffre=(TextView)findViewById(R.id.lieux_chiffre);
+        notification=(LinearLayout)findViewById(R.id.notification);
 
         lieuMap=new HashMap<>();
         casPositif=0;
@@ -157,6 +158,14 @@ public class AccueilActivity extends AppCompatActivity {
             public void onClick(View view) {
                 historique="VACCIN";
                 new HistoriqueAPI().execute();
+            }
+        });
+
+        //notification
+        notification.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                new Message().execute();
             }
         });
     }
@@ -714,4 +723,86 @@ public class AccueilActivity extends AppCompatActivity {
             }
         }
     }
+
+
+        //MESSAGE
+        private class Message extends AsyncTask<Void,Void, JSONArray>{
+            SweetAlertDialog pDialog = new SweetAlertDialog(AccueilActivity.this, SweetAlertDialog.PROGRESS_TYPE);
+            String userId;
+
+            Message(){
+                userId=p.getId();
+            }
+
+            @Override
+            protected void onPreExecute() {
+                super.onPreExecute();
+                pDialog.getProgressHelper().setBarColor(Color.parseColor("#66ccff"));
+                pDialog.setTitleText("Chargement");
+                pDialog.setCancelable(false);
+                pDialog.show();
+            }
+
+            @Override
+            protected JSONArray doInBackground(Void... voids) {
+                List params = new ArrayList();
+                //PARAMS : Key - value
+                //  params.add(new BasicNameValuePair("personne_id", p.getId()));
+
+                HttpHandler handler = new HttpHandler();
+
+                //Host : EndPoint
+                String url=Config.HOST+Config.MESSAGE+p.getId();
+                String apiResponse = handler.getHttp(url);
+                System.out.println("TEST RESPONSE"+apiResponse);
+
+                try {
+                    if(apiResponse!=null){
+                        return new JSONArray(apiResponse);
+                    }
+                    else {
+                        throw new JSONException("JSON vide");
+                    }
+
+                } catch (JSONException e) {
+                    Log.e("Exception json",e.getMessage().toString());
+                    e.printStackTrace();
+                    return null;
+                }
+            }
+
+            @Override
+            protected void onPostExecute(JSONArray result) {
+                super.onPostExecute(result);
+
+                if(pDialog!=null){
+                    pDialog.dismissWithAnimation();
+                }
+
+                //Result is null
+
+                if(result==null){
+                    Toast.makeText(AccueilActivity.this, "Erreur", Toast.LENGTH_SHORT).show();
+                }
+
+                else{
+                    //TREATMENT & REDIRECTION
+                    try {
+                            System.out.println("resultat"+result.toString());
+                            AccueilActivity.this.finish();
+                            Intent intent=new Intent(AccueilActivity.this, com.example.qr_niavo.Message.class);
+                            intent.putExtra("Resultat",result.toString());
+                            Bundle bundle = ActivityOptionsCompat.makeCustomAnimation(getApplicationContext(),
+                                    android.R.anim.fade_in, android.R.anim.fade_out).toBundle();
+                            startActivity(intent,bundle);
+
+
+                    } catch (Exception e) {
+                        Toast.makeText(AccueilActivity.this, "Aucun message", Toast.LENGTH_SHORT).show();
+                        e.printStackTrace();
+                    }
+
+                }
+            }
+        }
 }

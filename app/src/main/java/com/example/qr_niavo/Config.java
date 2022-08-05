@@ -30,7 +30,8 @@ public class Config {
     //LIEU:POST
     public static String LIEU="/api/lieu";
 
-
+    //MESSAGE
+    public static String MESSAGE="/api/messagePersonne/";
 
 
 

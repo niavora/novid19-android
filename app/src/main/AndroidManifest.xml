@@ -14,7 +14,8 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.QR_NIAVO"
         android:usesCleartextTraffic="true">
-        <activity android:name=".ListActivity"></activity>
+        <activity android:name=".Message"></activity>
+        <activity android:name=".ListActivity" />
         <activity android:name=".ListeLieu" />
         <activity android:name=".Resultat" />
         <activity android:name=".AccueilActivity" />
