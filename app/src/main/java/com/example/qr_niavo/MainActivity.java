@@ -1,6 +1,7 @@
 package com.example.qr_niavo;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityOptionsCompat;
 
 import android.content.Intent;
 import android.graphics.Color;
@@ -166,7 +167,9 @@ public class MainActivity extends AppCompatActivity {
                     sh.saveUser(result);
                     MainActivity.this.finish();
                     Intent intent=new Intent(MainActivity.this,AccueilActivity.class);
-                    startActivity(intent);
+                     Bundle bundle = ActivityOptionsCompat.makeCustomAnimation(getApplicationContext(),
+                android.R.anim.fade_in, android.R.anim.fade_out).toBundle();
+             startActivity(intent,bundle);
                     
                 } catch (JSONException e) {
                     Toast.makeText(MainActivity.this, "Erreur", Toast.LENGTH_SHORT).show();

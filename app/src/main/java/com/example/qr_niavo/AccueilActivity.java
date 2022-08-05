@@ -1,6 +1,7 @@
 package com.example.qr_niavo;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityOptionsCompat;
 
 import android.content.Intent;
 import android.graphics.Color;
@@ -19,6 +20,7 @@ import com.google.zxing.integration.android.IntentIntegrator;
 import com.google.zxing.integration.android.IntentResult;
 
 import org.apache.http.message.BasicNameValuePair;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.w3c.dom.Text;
@@ -36,13 +38,21 @@ public class AccueilActivity extends AppCompatActivity {
     TextView nom;
     Session sh;
     Personne p;
-    LinearLayout scanTest,scanCarte,scanLieux;
+    LinearLayout scanTest,scanCarte,scanLieux,historiqueLieu,historiqueTest,historiqueVaccin;
     /*
         0:TEST
         1:VACCIN
         2:LIEU
     * **/
     int origine;
+
+
+    /**
+     * TEST,
+     * VACCIN,
+     * LIEU
+     * */
+    String historique="";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -68,6 +78,9 @@ public class AccueilActivity extends AppCompatActivity {
         scanTest=(LinearLayout)findViewById(R.id.scan_test);
         scanCarte=(LinearLayout)findViewById(R.id.scan_vaccin);
         scanLieux=(LinearLayout)findViewById(R.id.scan_lieux);
+        historiqueLieu=(LinearLayout)findViewById(R.id.historique_lieu);
+        historiqueTest=(LinearLayout)findViewById(R.id.historique_test);
+        historiqueVaccin=(LinearLayout)findViewById(R.id.historique_vaccin);
 
 
         sh=new Session(this);
@@ -100,6 +113,31 @@ public class AccueilActivity extends AppCompatActivity {
             public void onClick(View view) {
                 origine=2;
                 initScan();
+            }
+        });
+
+
+
+        //HISTORIQUE
+        historiqueLieu.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                historique="LIEU";
+                new HistoriqueAPI().execute();
+            }
+        });
+        historiqueTest.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                historique="TEST";
+                new HistoriqueAPI().execute();
+            }
+        });
+        historiqueVaccin.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                historique="VACCIN";
+                new HistoriqueAPI().execute();
             }
         });
     }
@@ -159,7 +197,9 @@ public class AccueilActivity extends AppCompatActivity {
         sh.deleteSession();
         this.finish();
         Intent intent=new Intent(AccueilActivity.this,MainActivity.class);
-        startActivity(intent);
+         Bundle bundle = ActivityOptionsCompat.makeCustomAnimation(getApplicationContext(),
+                android.R.anim.fade_in, android.R.anim.fade_out).toBundle();
+        startActivity(intent,bundle);
     }
 
 
@@ -253,7 +293,9 @@ public class AccueilActivity extends AppCompatActivity {
                             intent.putExtra("date_test",datetest);
                             intent.putExtra("origine",origine);
 
-                            startActivity(intent);
+                             Bundle bundle = ActivityOptionsCompat.makeCustomAnimation(getApplicationContext(),
+                android.R.anim.fade_in, android.R.anim.fade_out).toBundle();
+        startActivity(intent,bundle);
                         }
                         else{
                             throw new Exception("Ce test n'est pas à vous");
@@ -272,7 +314,9 @@ public class AccueilActivity extends AppCompatActivity {
                         intent.putExtra("nom_vaccin",nomvaccin);
                         intent.putExtra("date_vaccin",date_vaccin);
                         intent.putExtra("origine",origine);
-                        startActivity(intent);
+                         Bundle bundle = ActivityOptionsCompat.makeCustomAnimation(getApplicationContext(),
+                android.R.anim.fade_in, android.R.anim.fade_out).toBundle();
+        startActivity(intent,bundle);
                     }
                     else{
 
@@ -367,6 +411,118 @@ public class AccueilActivity extends AppCompatActivity {
                 Toast.makeText(AccueilActivity.this, "Erreur", Toast.LENGTH_SHORT).show();
             }
 
+        }
+    }
+
+    //API
+    private class HistoriqueAPI extends AsyncTask<Void,Void, JSONArray>{
+        SweetAlertDialog pDialog = new SweetAlertDialog(AccueilActivity.this, SweetAlertDialog.PROGRESS_TYPE);
+        String userId;
+
+        HistoriqueAPI(){
+            userId=p.getId();
+        }
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            pDialog.getProgressHelper().setBarColor(Color.parseColor("#66ccff"));
+            pDialog.setTitleText("Chargement");
+            pDialog.setCancelable(false);
+            pDialog.show();
+        }
+
+        @Override
+        protected JSONArray doInBackground(Void... voids) {
+            List params = new ArrayList();
+            //PARAMS : Key - value
+           //  params.add(new BasicNameValuePair("personne_id", p.getId()));
+
+            HttpHandler handler = new HttpHandler();
+
+            //Host : EndPoint
+            String url=Config.HOST;
+            if(historique.equals("LIEU")){
+                url+=Config._HISTORIQUELIEU;
+                url+=p.getId();
+            }
+            else if(historique.equals("TEST")){
+                url+=Config._HISTORIQUETEST;
+                url+=p.getId();
+            }
+            else if(historique.equals("VACCIN")){
+                url+=Config._HISTORIQUEVACCIN+"62ea173f294733001617fda4";
+            }
+
+            System.out.println("URL"+url);
+            String apiResponse = handler.getHttp(url);
+            System.out.println("TEST RESPONSE"+apiResponse);
+
+            try {
+                if(apiResponse!=null){
+                    return new JSONArray(apiResponse);
+                }
+                else {
+                    throw new JSONException("JSON vide");
+                }
+
+            } catch (JSONException e) {
+                Log.e("Exception json",e.getMessage().toString());
+                e.printStackTrace();
+                return null;
+            }
+        }
+
+        @Override
+        protected void onPostExecute(JSONArray result) {
+            super.onPostExecute(result);
+
+            if(pDialog!=null){
+                pDialog.dismissWithAnimation();
+            }
+
+            //Result is null
+
+            if(result==null){
+                Toast.makeText(AccueilActivity.this, "Erreur", Toast.LENGTH_SHORT).show();
+            }
+
+            else{
+                //TREATMENT & REDIRECTION
+                try {
+                    if(historique.equals("LIEU")){
+                        AccueilActivity.this.finish();
+                        Intent intent=new Intent(AccueilActivity.this,ListeLieu.class);
+                        intent.putExtra("Resultat",result.toString());
+                         Bundle bundle = ActivityOptionsCompat.makeCustomAnimation(getApplicationContext(),
+                android.R.anim.fade_in, android.R.anim.fade_out).toBundle();
+        startActivity(intent,bundle);
+                    }
+                    else if(historique.equals("TEST")){
+                        AccueilActivity.this.finish();
+                        Intent intent=new Intent(AccueilActivity.this,ListeTest.class);
+                        intent.putExtra("Resultat",result.toString());
+                         Bundle bundle = ActivityOptionsCompat.makeCustomAnimation(getApplicationContext(),
+                android.R.anim.fade_in, android.R.anim.fade_out).toBundle();
+        startActivity(intent,bundle);
+                    }
+                    else{
+                        System.out.println("resultat"+result.toString());
+                        AccueilActivity.this.finish();
+                        Intent intent=new Intent(AccueilActivity.this,ListActivity.class);
+                        intent.putExtra("Resultat",result.toString());
+                         Bundle bundle = ActivityOptionsCompat.makeCustomAnimation(getApplicationContext(),
+                android.R.anim.fade_in, android.R.anim.fade_out).toBundle();
+        startActivity(intent,bundle);
+                    }
+
+
+                } catch (Exception e) {
+                    Toast.makeText(AccueilActivity.this, "Erreur", Toast.LENGTH_SHORT).show();
+                    e.printStackTrace();
+                }
+
+            }
         }
     }
 }

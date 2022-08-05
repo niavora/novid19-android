@@ -319,6 +319,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
                 <LinearLayout
+                    android:id="@+id/historique_lieu"
                     android:gravity="center"
                     android:orientation="vertical"
                     android:layout_width="100dp"
@@ -342,6 +343,7 @@
                         android:layout_height="wrap_content"/>
                 </LinearLayout>
             <LinearLayout
+                android:id="@+id/historique_test"
                 android:gravity="center"
                 android:orientation="vertical"
                 android:layout_width="100dp"
@@ -365,6 +367,7 @@
                     android:layout_height="wrap_content"/>
             </LinearLayout>
             <LinearLayout
+                android:id="@+id/historique_vaccin"
                 android:gravity="center"
                 android:orientation="vertical"
                 android:layout_width="100dp"

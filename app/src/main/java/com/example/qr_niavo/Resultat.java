@@ -1,6 +1,7 @@
 package com.example.qr_niavo;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityOptionsCompat;
 
 import android.content.Intent;
 import android.graphics.Color;
@@ -129,10 +130,11 @@ public class Resultat extends AppCompatActivity {
         super.onBackPressed();
         Resultat.this.finish();
         Intent intent=new Intent(Resultat.this,AccueilActivity.class);
-        startActivity(intent);
+         Bundle bundle = ActivityOptionsCompat.makeCustomAnimation(getApplicationContext(),
+                android.R.anim.fade_in, android.R.anim.fade_out).toBundle();
+        startActivity(intent,bundle);
     }
 
-    //CALL TEST OR VACCIN
     private class Centre extends AsyncTask<Void,Void, JSONObject> {
         SweetAlertDialog pDialog = new SweetAlertDialog(Resultat.this, SweetAlertDialog.PROGRESS_TYPE);
         String centreId;

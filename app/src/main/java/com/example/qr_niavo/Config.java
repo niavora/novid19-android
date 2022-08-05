@@ -9,13 +9,28 @@ public class Config {
     //VACCIN:GET
     public static String VACCINSCAN="/api/vaccin/";
     //LIEU:POST
-    public static String HISTORIQUEP="/api/historiquepassage/";
+    public static String HISTORIQUELIEU="/api/historique";
+
+    //GET LIEU HISTORIQUE
+    public static String _HISTORIQUELIEU="/api/historiquePersonne/";
+
+    //GET TEST HISTORIQUE
+    public static String _HISTORIQUETEST="/api/testPersonne/";
+
+
+    //GET VACCIN HISTORIQUE
+    public static String _HISTORIQUEVACCIN="/api/vaccinCarte/";
+
+    //TEST:POST
+    public static String HISTORIQUETEST="/api/test";
 
     //CENTRE:POST
     public static String CENTRE="/api/centre/";
 
     //LIEU:POST
     public static String LIEU="/api/lieu";
+
+
 
 
 
