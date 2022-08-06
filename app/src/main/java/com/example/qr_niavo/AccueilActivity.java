@@ -405,9 +405,9 @@ public class AccueilActivity extends AppCompatActivity {
             List params = new ArrayList();
             //PARAMS : Key - value
 
-           params.add(new BasicNameValuePair("lieuID", lieuId));
-           params.add(new BasicNameValuePair("personneID", p.getId()));
-           params.add(new BasicNameValuePair("datePassage", datePassage));
+           params.add(new BasicNameValuePair("lieu_id", lieuId));
+           params.add(new BasicNameValuePair("personne_id", p.getId()));
+           params.add(new BasicNameValuePair("date_passage", datePassage));
 
 
             System.out.println("Lieu Id"+lieuId);
@@ -417,7 +417,7 @@ public class AccueilActivity extends AppCompatActivity {
             HttpHandler handler = new HttpHandler();
 
             //Host : EndPoint
-            String url=Config.HOST+Config.LIEU;
+            String url=Config.HOST+Config.HISTORIQUELIEU;
 
             String apiResponse = handler.PostHttp(url,(ArrayList<BasicNameValuePair>) params);
             System.out.println("API RESPONSE"+apiResponse);
@@ -714,6 +714,7 @@ public class AccueilActivity extends AppCompatActivity {
                     if(result.has("docs")){
                         JSONArray jo=result.getJSONArray("docs");
                         testEffectue=jo.length();
+                        casPositif = 0;
                         for (int i=0;i<jo.length();i++){
                             JSONObject jsonObject=jo.getJSONObject(i);
                             if(jsonObject.getInt("etat_test")==2){
