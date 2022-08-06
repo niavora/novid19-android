@@ -12,13 +12,16 @@ import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.qr_niavo.Adaptor.ListeTestAdaptor;
 import com.example.qr_niavo.Adaptor.MessageAdaptor;
 import com.example.qr_niavo.Managers.HttpHandler;
 import com.example.qr_niavo.Models.MessageModel;
+import com.example.qr_niavo.Models.Personne;
 import com.example.qr_niavo.Models.Test;
+import com.example.qr_niavo.Service.Session;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -37,6 +40,9 @@ public class Message extends AppCompatActivity {
     HashMap<String,String> listeCentre;
     Context ctx;
     String resultatTestString;
+    TextView nom;
+    Session sh;
+    Personne p;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -62,7 +68,10 @@ public class Message extends AppCompatActivity {
         catch (Exception e){
             e.printStackTrace();
         }
-
+        sh = new Session(this);
+        p = sh.getUser();
+        nom = (TextView) findViewById(R.id.nom);
+        nom.setText(p.getNom() + " "+p.getPrenom());
         this.listView=(ListView)findViewById(R.id.listeview);
         this.listeMessage=new ArrayList<>();
         this.ctx=this;

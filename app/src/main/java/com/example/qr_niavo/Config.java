@@ -8,6 +8,8 @@ public class Config {
     public static String TESTSCAN="/api/test/";
     //VACCIN:GET
     public static String VACCINSCAN="/api/vaccin/";
+    //VACCIN:GET
+    public static String VACCINCARTE="/api/vaccinCarte/";
     //CARTE:GET
     public static String CARTE="/api/cartev/";
     //LIEU:POST
@@ -34,6 +36,9 @@ public class Config {
 
     //MESSAGE
     public static String MESSAGE="/api/messagePersonne/";
+
+    //MESSAGE
+    public static String CARTEPERSONNE="/api/cartePersonne/";
 
 
 

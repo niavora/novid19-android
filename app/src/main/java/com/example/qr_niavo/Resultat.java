@@ -32,6 +32,7 @@ public class Resultat extends AppCompatActivity {
     int origine=-1;
     Session sh;
     Personne p;
+    TextView nom;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -54,6 +55,8 @@ public class Resultat extends AppCompatActivity {
         origine=bundle.getInt("origine");
         sh=new Session(this);
         p=sh.getUser();
+        nom = (TextView) findViewById(R.id.nom);
+        nom.setText(p.getNom() + " "+p.getPrenom());
         if(origine==0){
             idCentre=bundle.getString("centre_id");
             etatTest=bundle.getString("etat_test");
@@ -205,7 +208,7 @@ public class Resultat extends AppCompatActivity {
 
 
                         if(origine==0){
-                            String resultatTest=(etatTest=="0")?"négatif":"positif";
+                            String resultatTest=(etatTest=="2")?"négatif":"positif";
                             resultatText=renderText(p.getNom(),p.getPrenom(),
                                     p.getDateDdn(),p.getAdresse(),Utility.formatDate(dateTest.substring(0,10)),resultatTest,nomCentre);
 

@@ -29,6 +29,8 @@ import cn.pedant.SweetAlert.SweetAlertDialog;
 public class MainActivity extends AppCompatActivity {
     Button scan_qr;
     Session sh;
+    String carteId;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -39,15 +41,15 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void redirectIfUserExist() {
-        try{
-            if (sh.getUser() != null){
+        try {
+            if (sh.getUser() != null) {
                 MainActivity.this.finish();
-                Intent intent=new Intent(MainActivity.this,AccueilActivity.class);
+                Intent intent = new Intent(MainActivity.this, AccueilActivity.class);
                 Bundle bundle = ActivityOptionsCompat.makeCustomAnimation(getApplicationContext(),
                         android.R.anim.fade_in, android.R.anim.fade_out).toBundle();
-                startActivity(intent,bundle);
+                startActivity(intent, bundle);
             }
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -59,22 +61,21 @@ public class MainActivity extends AppCompatActivity {
         onClick();
     }
 
-    private void initView(){
-        try{
+    private void initView() {
+        try {
             this.getSupportActionBar().hide();
-        }
-        catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
-        this.scan_qr=(Button)findViewById(R.id.scan_qr);
-        sh=new Session(this);
+        this.scan_qr = (Button) findViewById(R.id.scan_qr);
+        sh = new Session(this);
     }
 
-    private void onClick(){
+    private void onClick() {
         this.scan_qr.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                    initScan();
+                initScan();
             }
         });
     }
@@ -117,91 +118,13 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-//call 2
-    private class AfterScan extends AsyncTask<Void,Void, JSONObject>{
+    //call 2
+    private class AfterScan extends AsyncTask<Void, Void, JSONObject> {
         SweetAlertDialog pDialog = new SweetAlertDialog(MainActivity.this, SweetAlertDialog.PROGRESS_TYPE);
         String userId;
-        AfterScan(String id){
-            userId=id;
-        }
 
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            pDialog.getProgressHelper().setBarColor(Color.parseColor("#66ccff"));
-            pDialog.setTitleText("Chargement");
-            pDialog.setCancelable(false);
-            pDialog.show();
-        }
-
-        @Override
-        protected JSONObject doInBackground(Void... voids) {
-            List params = new ArrayList();
-            //PARAMS : Key - value
-           // params.add(new BasicNameValuePair("key", value));
-
-            HttpHandler handler = new HttpHandler();
-
-            //Host : EndPoint
-            String url=Config.HOST+Config.AUTHENTIFICATION+userId;
-            String apiResponse = handler.getHttp(url);
-            System.out.println("API RESPONSE"+apiResponse);
-
-            try {
-                if(apiResponse!=null){
-                    return new JSONObject(apiResponse);
-                }
-                else {
-                    throw new JSONException("JSON vide");
-                }
-
-            } catch (JSONException e) {
-                Log.e("Exception json",e.getMessage().toString());
-                e.printStackTrace();
-                return null;
-            }
-        }
-
-        @Override
-        protected void onPostExecute(JSONObject result) {
-            super.onPostExecute(result);
-
-            if(pDialog!=null){
-                pDialog.dismissWithAnimation();
-            }
-
-            //Result is null
-
-            if(result==null){
-                Toast.makeText(MainActivity.this, "Erreur", Toast.LENGTH_SHORT).show();
-            }
-
-            else{
-                    //TREATMENT & REDIRECTION
-                try {
-                    sh.saveUser(result);
-                    MainActivity.this.finish();
-                    Intent intent=new Intent(MainActivity.this,AccueilActivity.class);
-                     Bundle bundle = ActivityOptionsCompat.makeCustomAnimation(getApplicationContext(),
-                android.R.anim.fade_in, android.R.anim.fade_out).toBundle();
-             startActivity(intent,bundle);
-                    
-                } catch (JSONException e) {
-                    Toast.makeText(MainActivity.this, "Erreur", Toast.LENGTH_SHORT).show();
-                    e.printStackTrace();
-                }
-
-            }
-        }
-    }
-
-
-    //call 1
-    private class TEST extends AsyncTask<Void,Void, JSONObject>{
-        SweetAlertDialog pDialog = new SweetAlertDialog(MainActivity.this, SweetAlertDialog.PROGRESS_TYPE);
-        String userId;
-        TEST(String id){
-            userId=id;
+        AfterScan(String id) {
+            userId = id;
         }
 
         @Override
@@ -222,20 +145,19 @@ public class MainActivity extends AppCompatActivity {
             HttpHandler handler = new HttpHandler();
 
             //Host : EndPoint
-            String url=Config.HOST+Config.TESTSCAN+userId;
+            String url = Config.HOST + Config.AUTHENTIFICATION + userId;
             String apiResponse = handler.getHttp(url);
-            System.out.println("API RESPONSE"+apiResponse);
+            System.out.println("API RESPONSE" + apiResponse);
 
             try {
-                if(apiResponse!=null && !apiResponse.equals("null")){
+                if (apiResponse != null) {
                     return new JSONObject(apiResponse);
-                }
-                else {
+                } else {
                     throw new JSONException("JSON vide");
                 }
 
             } catch (JSONException e) {
-                Log.e("Exception json",e.getMessage().toString());
+                Log.e("Exception json", e.getMessage().toString());
                 e.printStackTrace();
                 return null;
             }
@@ -245,25 +167,102 @@ public class MainActivity extends AppCompatActivity {
         protected void onPostExecute(JSONObject result) {
             super.onPostExecute(result);
 
-            if(pDialog!=null){
+            if (pDialog != null) {
                 pDialog.dismissWithAnimation();
             }
 
             //Result is null
 
-            if(result==null){
-                new VACCIN(userId).execute();
-//                Toast.makeText(MainActivity.this, "Erreur", Toast.LENGTH_SHORT).show();
-            }
-
-            else{
+            if (result == null) {
+                Toast.makeText(MainActivity.this, "Erreur", Toast.LENGTH_SHORT).show();
+            } else {
                 //TREATMENT & REDIRECTION
                 try {
-                    if(result.has("personne_id")){
-                        String personneid=result.getString("personne_id");
-                        new AfterScan(personneid).execute();
+                    sh.saveUser(result);
+                    if (carteId != null) {
+                        sh.saveCarteId(carteId);
                     }
-                    else{
+                    MainActivity.this.finish();
+                    Intent intent = new Intent(MainActivity.this, AccueilActivity.class);
+                    Bundle bundle = ActivityOptionsCompat.makeCustomAnimation(getApplicationContext(),
+                            android.R.anim.fade_in, android.R.anim.fade_out).toBundle();
+                    startActivity(intent, bundle);
+
+                } catch (JSONException e) {
+                    Toast.makeText(MainActivity.this, "Erreur", Toast.LENGTH_SHORT).show();
+                    e.printStackTrace();
+                }
+
+            }
+        }
+    }
+
+
+    //call 1
+    private class TEST extends AsyncTask<Void, Void, JSONObject> {
+        SweetAlertDialog pDialog = new SweetAlertDialog(MainActivity.this, SweetAlertDialog.PROGRESS_TYPE);
+        String userId;
+
+        TEST(String id) {
+            userId = id;
+        }
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            pDialog.getProgressHelper().setBarColor(Color.parseColor("#66ccff"));
+            pDialog.setTitleText("Chargement");
+            pDialog.setCancelable(false);
+            pDialog.show();
+        }
+
+        @Override
+        protected JSONObject doInBackground(Void... voids) {
+            List params = new ArrayList();
+            //PARAMS : Key - value
+            // params.add(new BasicNameValuePair("key", value));
+
+            HttpHandler handler = new HttpHandler();
+
+            //Host : EndPoint
+            String url = Config.HOST + Config.TESTSCAN + userId;
+            String apiResponse = handler.getHttp(url);
+            System.out.println("API RESPONSE" + apiResponse);
+
+            try {
+                if (apiResponse != null && !apiResponse.equals("null")) {
+                    return new JSONObject(apiResponse);
+                } else {
+                    throw new JSONException("JSON vide");
+                }
+
+            } catch (JSONException e) {
+                Log.e("Exception json", e.getMessage().toString());
+                e.printStackTrace();
+                return null;
+            }
+        }
+
+        @Override
+        protected void onPostExecute(JSONObject result) {
+            super.onPostExecute(result);
+
+            if (pDialog != null) {
+                pDialog.dismissWithAnimation();
+            }
+
+            //Result is null
+
+            if (result == null) {
+                new VACCIN(userId).execute();
+//                Toast.makeText(MainActivity.this, "Erreur", Toast.LENGTH_SHORT).show();
+            } else {
+                //TREATMENT & REDIRECTION
+                try {
+                    if (result.has("personne_id")) {
+                        String personneid = result.getString("personne_id");
+                        new AfterScan(personneid).execute();
+                    } else {
                         throw new Exception("Erreur API");
                     }
 
@@ -276,11 +275,12 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private class VACCIN extends AsyncTask<Void,Void, JSONObject>{
+    private class VACCIN extends AsyncTask<Void, Void, JSONObject> {
         SweetAlertDialog pDialog = new SweetAlertDialog(MainActivity.this, SweetAlertDialog.PROGRESS_TYPE);
         String userId;
-        VACCIN(String id){
-            userId=id;
+
+        VACCIN(String id) {
+            userId = id;
         }
 
         @Override
@@ -301,20 +301,20 @@ public class MainActivity extends AppCompatActivity {
             HttpHandler handler = new HttpHandler();
 
             //Host : EndPoint
-            String url=Config.HOST+Config.CARTE+userId;
+            String url = Config.HOST + Config.CARTE + userId;
             String apiResponse = handler.getHttp(url);
-            System.out.println("API RESPONSE"+apiResponse);
+            System.out.println("API RESPONSE" + apiResponse);
 
             try {
-                if(apiResponse!=null){
+                if (apiResponse != null) {
+                    carteId = userId;
                     return new JSONObject(apiResponse);
-                }
-                else {
+                } else {
                     throw new JSONException("JSON vide");
                 }
 
             } catch (JSONException e) {
-                Log.e("Exception json",e.getMessage().toString());
+                Log.e("Exception json", e.getMessage().toString());
                 e.printStackTrace();
                 return null;
             }
@@ -324,30 +324,26 @@ public class MainActivity extends AppCompatActivity {
         protected void onPostExecute(JSONObject result) {
             super.onPostExecute(result);
 
-            if(pDialog!=null){
+            if (pDialog != null) {
                 pDialog.dismissWithAnimation();
             }
 
             //Result is null
 
-            if(result==null){
+            if (result == null) {
                 Toast.makeText(MainActivity.this, "Erreur", Toast.LENGTH_SHORT).show();
-            }
-
-            else{
+            } else {
                 //TREATMENT & REDIRECTION
                 try {
-                    if(result!=null){
-                        if(result.has("personne_id")){
-                            String personneid=result.getString("personne_id");
+                    if (result != null) {
+                        if (result.has("personne_id")) {
+                            String personneid = result.getString("personne_id");
                             new AfterScan(personneid).execute();
-                        }
-                        else{
+                        } else {
                             throw new Exception("Erreur API");
                         }
 
-                    }
-                    else{
+                    } else {
 
                     }
 

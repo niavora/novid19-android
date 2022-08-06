@@ -51,7 +51,8 @@ public class Session {
                     Utility.formatDate(sh.getString("dateddn", "").substring(0,10)),
                     sh.getString("adresse", ""),
                     sh.getString("cin", ""),
-                    sh.getInt("sexe", 0));
+                    sh.getInt("sexe", 0),
+                    sh.getString("CarteId",""));
             return m;
         }
 
@@ -63,5 +64,12 @@ public class Session {
         public void deleteSession(){
             SharedPreferences sp = context.getSharedPreferences("user_info", Context.MODE_PRIVATE);
             sp.edit().clear().commit();
+        }
+
+        public void saveCarteId(String carteId) {
+            SharedPreferences sharedpreferences = context.getSharedPreferences("user_info", Context.MODE_PRIVATE);
+            SharedPreferences.Editor editor = sharedpreferences.edit();
+            editor.putString("CarteId", carteId);
+            editor.commit();
         }
 }

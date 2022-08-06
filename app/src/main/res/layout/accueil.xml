@@ -29,7 +29,6 @@
                 android:textStyle="bold"
                 android:id="@+id/nom"
                 android:textColor="@color/white"
-                android:text="ANDRIANJATOVO Andy"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:drawablePadding="10dp"

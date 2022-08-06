@@ -19,6 +19,7 @@ import android.widget.Toast;
 
 import com.example.qr_niavo.Adaptor.ListeTestAdaptor;
 import com.example.qr_niavo.Managers.HttpHandler;
+import com.example.qr_niavo.Models.Personne;
 import com.example.qr_niavo.Models.Test;
 import com.example.qr_niavo.Service.Session;
 
@@ -38,6 +39,9 @@ public class ListeTest extends AppCompatActivity {
     HashMap<String,String> listeCentre;
     Context ctx;
     String resultatTestString;
+    TextView nom;
+    Session sh;
+    Personne p;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,7 +72,10 @@ public class ListeTest extends AppCompatActivity {
         resultatTestString="";
         Bundle bundle=getIntent().getExtras();
         resultatTestString=bundle.getString("Resultat");
-
+        sh = new Session(this);
+        p = sh.getUser();
+        nom = (TextView) findViewById(R.id.nom);
+        nom.setText(p.getNom() + " "+p.getPrenom());
         //List onClick
         this.listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override

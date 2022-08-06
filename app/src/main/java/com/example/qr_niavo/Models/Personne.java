@@ -1,10 +1,10 @@
 package com.example.qr_niavo.Models;
 
 public class Personne {
-    private String id,nom,prenom,mail,dateDdn,adresse,cin;
+    private String id,nom,prenom,mail,dateDdn,adresse,cin, CarteId;
     private int sexe;
 
-    public Personne(String id, String nom, String prenom, String mail, String dateDdn, String adresse, String cin, int sexe) {
+    public Personne(String id, String nom, String prenom, String mail, String dateDdn, String adresse, String cin, int sexe, String carte) {
         this.id = id;
         this.nom = nom;
         this.prenom = prenom;
@@ -13,6 +13,7 @@ public class Personne {
         this.adresse = adresse;
         this.cin = cin;
         this.sexe = sexe;
+        this.CarteId = carte;
     }
 
     public String getId() {
@@ -77,5 +78,13 @@ public class Personne {
 
     public void setSexe(int sexe) {
         this.sexe = sexe;
+    }
+
+    public void setCarteId(String sexe) {
+        this.CarteId = sexe;
+    }
+
+    public String getCarteId() {
+        return CarteId;
     }
 }

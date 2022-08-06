@@ -8,7 +8,6 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.text.Html;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
@@ -17,14 +16,14 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.qr_niavo.Adaptor.ListeLieuAdaptor;
-import com.example.qr_niavo.Adaptor.ListeTestAdaptor;
+import com.example.qr_niavo.Adaptor.ListeVaccinAdaptor;
 import com.example.qr_niavo.Managers.HttpHandler;
-import com.example.qr_niavo.Models.Lieu;
 import com.example.qr_niavo.Models.Personne;
 import com.example.qr_niavo.Models.Test;
+import com.example.qr_niavo.Models.Vaccin;
 import com.example.qr_niavo.Service.Session;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -34,21 +33,20 @@ import java.util.List;
 
 import cn.pedant.SweetAlert.SweetAlertDialog;
 
-public class ListeLieu extends AppCompatActivity {
+public class ListVaccin extends AppCompatActivity {
     ListView listView;
-    List<Lieu> listeLieu;
-    ListeLieuAdaptor lieuAdaptor;
-    HashMap<String,String> lieuMap;
+    List<Vaccin> listVaccin;
+    ListeVaccinAdaptor vaccinAdaptor;
+    HashMap<String,String> listeCentre;
     Context ctx;
-    String jsonListe;
+    String resultatTestString;
     TextView nom;
     Session sh;
     Personne p;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_liste_lieu);
+        setContentView(R.layout.activity_list);
         initView();
 
     }
@@ -56,7 +54,7 @@ public class ListeLieu extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        new getListeLieu().execute();
+        new ListVaccin.Centre().execute();
     }
 
     private void initView(){
@@ -66,24 +64,25 @@ public class ListeLieu extends AppCompatActivity {
         catch (Exception e){
             e.printStackTrace();
         }
-        this.listView=(ListView)findViewById(R.id.listeview);
         sh = new Session(this);
         p = sh.getUser();
         nom = (TextView) findViewById(R.id.nom);
-         nom.setText(p.getNom() + " "+p.getPrenom());
-        this.listeLieu=new ArrayList<>();
+        nom.setText(p.getNom() + " "+p.getPrenom());
+
+        this.listView=(ListView)findViewById(R.id.listeview);
+        this.listVaccin=new ArrayList<>();
+        this.listeCentre=new HashMap<>();
         this.ctx=this;
-        this.lieuMap=new HashMap<>();
+        resultatTestString="";
         Bundle bundle=getIntent().getExtras();
-        jsonListe="";
-        jsonListe=bundle.getString("Resultat");
+        resultatTestString=bundle.getString("Resultat");
 
-
+        System.out.println("Resultat test string"+resultatTestString);
         //List onClick
         this.listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                Lieu item=listeLieu.get(i);
+                Vaccin item=listVaccin.get(i);
 
                 //
             }
@@ -91,9 +90,11 @@ public class ListeLieu extends AppCompatActivity {
     }
 
 
-    private class getListeLieu extends AsyncTask<Void,Void, JSONObject>{
-        SweetAlertDialog pDialog = new SweetAlertDialog(ListeLieu.this, SweetAlertDialog.PROGRESS_TYPE);
-        getListeLieu(){
+
+    class Centre extends AsyncTask<Void,Void, JSONObject> {
+        SweetAlertDialog pDialog = new SweetAlertDialog(ListVaccin.this, SweetAlertDialog.PROGRESS_TYPE);
+        Centre(){
+
         }
 
         @Override
@@ -114,10 +115,10 @@ public class ListeLieu extends AppCompatActivity {
             HttpHandler handler = new HttpHandler();
 
             //Host : EndPoint
-            String url=Config.HOST+Config.LIEU;
+            String url=Config.HOST+Config.CENTRE;
 
             String apiResponse = handler.getHttp(url);
-            System.out.println("API RESPONSE"+apiResponse);
+            System.out.println("RESULTAT TEST RESPONSE"+apiResponse);
 
             try {
                 if(apiResponse!=null){
@@ -145,27 +146,27 @@ public class ListeLieu extends AppCompatActivity {
             //Result is null
 
             if(result==null){
-                Toast.makeText(ListeLieu.this, "Erreur", Toast.LENGTH_SHORT).show();
+                Toast.makeText(ListVaccin.this, "Erreur", Toast.LENGTH_SHORT).show();
             }
+
             else{
                 //TREATMENT & REDIRECTION
                 try {
+                    System.out.println("ATOOOOO");
                     if(result.has("docs")){
-                        lieuMap=Utility.ListeLieu(result);
-                        listeLieu=Utility.jsonToList(jsonListe,lieuMap);
-
-                        //SETUP UI
-                        ListeLieu.this.lieuAdaptor=new ListeLieuAdaptor(ctx,listeLieu);
-                        ListeLieu.this.listView.setAdapter( ListeLieu.this.lieuAdaptor);
-
+                        listeCentre=Utility.ListeCentre(result);
+                        JSONObject temp = new JSONObject(resultatTestString);
+                        JSONArray temp2 = temp.getJSONArray("docs");
+                        listVaccin=Utility.jsonToListVaccin(temp2.toString(),listeCentre);
+                        System.out.println("Liste vaccin"+listVaccin.size());
+                        ListVaccin.this.vaccinAdaptor=new ListeVaccinAdaptor(ctx,listVaccin);
+                        ListVaccin.this.listView.setAdapter(ListVaccin.this.vaccinAdaptor);
+                        System.out.println("VITA NY AFFICHAGE");
 
                     }
                     else{
                         throw new Exception("Aucun résultat");
                     }
-
-
-
 
                 } catch (Exception e) {
                     Log.e("Erreur",e.getMessage());
@@ -179,8 +180,8 @@ public class ListeLieu extends AppCompatActivity {
     public void onBackPressed() {
         super.onBackPressed();
         this.finish();
-        Intent intent=new Intent(ListeLieu.this,AccueilActivity.class);
-         Bundle bundle = ActivityOptionsCompat.makeCustomAnimation(getApplicationContext(),
+        Intent intent=new Intent(ListVaccin.this,AccueilActivity.class);
+        Bundle bundle = ActivityOptionsCompat.makeCustomAnimation(getApplicationContext(),
                 android.R.anim.fade_in, android.R.anim.fade_out).toBundle();
         startActivity(intent,bundle);
     }

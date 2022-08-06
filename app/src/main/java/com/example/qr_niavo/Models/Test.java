@@ -3,6 +3,8 @@ package com.example.qr_niavo.Models;
 public class Test {
     private String dateTest;
     private String lieuTest;
+    private String etatTest;
+
 
     //Constructor
     public Test(){
@@ -11,9 +13,10 @@ public class Test {
 
 
 
-    public Test(String dateTest, String lieuTest) {
+    public Test(String dateTest, String lieuTest, String etatTest) {
         this.dateTest = dateTest;
         this.lieuTest = lieuTest;
+        this.etatTest = etatTest;
     }
 
     //Setters & getters
@@ -30,7 +33,15 @@ public class Test {
         return lieuTest;
     }
 
+    public String getEtatTest() {
+        return etatTest;
+    }
+
     public void setLieuTest(String lieuTest) {
         this.lieuTest = lieuTest;
+    }
+
+    public void setEtatTest(String lieuTest) {
+        this.etatTest = lieuTest;
     }
 }

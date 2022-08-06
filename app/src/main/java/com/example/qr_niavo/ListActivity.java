@@ -82,7 +82,7 @@ public class ListActivity extends AppCompatActivity {
 
 
 
-    private class Centre extends AsyncTask<Void,Void, JSONObject> {
+    class Centre extends AsyncTask<Void,Void, JSONObject> {
         SweetAlertDialog pDialog = new SweetAlertDialog(ListActivity.this, SweetAlertDialog.PROGRESS_TYPE);
         Centre(){
 
