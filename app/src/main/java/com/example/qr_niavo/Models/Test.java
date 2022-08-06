@@ -13,10 +13,9 @@ public class Test {
 
 
 
-    public Test(String dateTest, String lieuTest, String etatTest) {
+    public Test(String dateTest, String lieuTest) {
         this.dateTest = dateTest;
         this.lieuTest = lieuTest;
-        this.etatTest = etatTest;
     }
 
     //Setters & getters
