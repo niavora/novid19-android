@@ -8,6 +8,8 @@ public class Config {
     public static String TESTSCAN="/api/test/";
     //VACCIN:GET
     public static String VACCINSCAN="/api/vaccin/";
+    //CARTE:GET
+    public static String CARTE="/api/cartev/";
     //LIEU:POST
     public static String HISTORIQUELIEU="/api/historique";
 

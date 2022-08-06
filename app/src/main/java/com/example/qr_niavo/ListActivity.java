@@ -11,13 +11,16 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.qr_niavo.Adaptor.ListeVaccinAdaptor;
 import com.example.qr_niavo.Managers.HttpHandler;
 import com.example.qr_niavo.Models.Test;
 import com.example.qr_niavo.Models.Vaccin;
+import com.example.qr_niavo.Service.Session;
 
 import org.json.JSONException;
 import org.json.JSONObject;

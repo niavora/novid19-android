@@ -34,6 +34,22 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         initView();
+
+        redirectIfUserExist();
+    }
+
+    private void redirectIfUserExist() {
+        try{
+            if (sh.getUser() != null){
+                MainActivity.this.finish();
+                Intent intent=new Intent(MainActivity.this,AccueilActivity.class);
+                Bundle bundle = ActivityOptionsCompat.makeCustomAnimation(getApplicationContext(),
+                        android.R.anim.fade_in, android.R.anim.fade_out).toBundle();
+                startActivity(intent,bundle);
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
     }
 
 
@@ -207,6 +223,85 @@ public class MainActivity extends AppCompatActivity {
 
             //Host : EndPoint
             String url=Config.HOST+Config.TESTSCAN+userId;
+            String apiResponse = handler.getHttp(url);
+            System.out.println("API RESPONSE"+apiResponse);
+
+            try {
+                if(apiResponse!=null && !apiResponse.equals("null")){
+                    return new JSONObject(apiResponse);
+                }
+                else {
+                    throw new JSONException("JSON vide");
+                }
+
+            } catch (JSONException e) {
+                Log.e("Exception json",e.getMessage().toString());
+                e.printStackTrace();
+                return null;
+            }
+        }
+
+        @Override
+        protected void onPostExecute(JSONObject result) {
+            super.onPostExecute(result);
+
+            if(pDialog!=null){
+                pDialog.dismissWithAnimation();
+            }
+
+            //Result is null
+
+            if(result==null){
+                new VACCIN(userId).execute();
+//                Toast.makeText(MainActivity.this, "Erreur", Toast.LENGTH_SHORT).show();
+            }
+
+            else{
+                //TREATMENT & REDIRECTION
+                try {
+                    if(result.has("personne_id")){
+                        String personneid=result.getString("personne_id");
+                        new AfterScan(personneid).execute();
+                    }
+                    else{
+                        throw new Exception("Erreur API");
+                    }
+
+                } catch (Exception e) {
+                    Toast.makeText(MainActivity.this, "Erreur", Toast.LENGTH_SHORT).show();
+                    e.printStackTrace();
+                }
+
+            }
+        }
+    }
+
+    private class VACCIN extends AsyncTask<Void,Void, JSONObject>{
+        SweetAlertDialog pDialog = new SweetAlertDialog(MainActivity.this, SweetAlertDialog.PROGRESS_TYPE);
+        String userId;
+        VACCIN(String id){
+            userId=id;
+        }
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            pDialog.getProgressHelper().setBarColor(Color.parseColor("#66ccff"));
+            pDialog.setTitleText("Chargement");
+            pDialog.setCancelable(false);
+            pDialog.show();
+        }
+
+        @Override
+        protected JSONObject doInBackground(Void... voids) {
+            List params = new ArrayList();
+            //PARAMS : Key - value
+            // params.add(new BasicNameValuePair("key", value));
+
+            HttpHandler handler = new HttpHandler();
+
+            //Host : EndPoint
+            String url=Config.HOST+Config.CARTE+userId;
             String apiResponse = handler.getHttp(url);
             System.out.println("API RESPONSE"+apiResponse);
 

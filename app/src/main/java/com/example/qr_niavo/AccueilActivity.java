@@ -4,6 +4,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityOptionsCompat;
 
 import android.content.Intent;
+import android.content.pm.LabeledIntent;
 import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -46,6 +47,7 @@ public class AccueilActivity extends AppCompatActivity {
     int casPositif;
     int testEffectue;
     TextView testChiffre, lieuChiffre,positifChiffre;
+    TextView notif;
 
     /*
         0:TEST
@@ -73,11 +75,10 @@ public class AccueilActivity extends AppCompatActivity {
         super.onStart();
         new getListeLieu().execute();
 
+        new MessageCount().execute();
 
         //EVENT
         onClick();
-
-
     }
 
     private void initView(){
@@ -96,6 +97,7 @@ public class AccueilActivity extends AppCompatActivity {
         testChiffre=(TextView)findViewById(R.id.test_chiffre);
         positifChiffre=(TextView)findViewById(R.id.positif_chiffre);
         lieuChiffre=(TextView)findViewById(R.id.lieux_chiffre);
+        notif=(TextView)findViewById(R.id.chiffre);
         notification=(LinearLayout)findViewById(R.id.notification);
 
         lieuMap=new HashMap<>();
@@ -109,6 +111,7 @@ public class AccueilActivity extends AppCompatActivity {
 
         nom=(TextView)findViewById(R.id.nom);
         nom.setText(p.getNom()+" "+p.getPrenom());
+
         //ORIGINE CLICK
         origine=-1;
     }
@@ -135,7 +138,20 @@ public class AccueilActivity extends AppCompatActivity {
                 initScan();
             }
         });
+        nom.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                sh = new Session(AccueilActivity.this);
+                sh.deleteSession();
 
+                AccueilActivity.this.finish();
+                Intent intent = new Intent(AccueilActivity.this, MainActivity.class);
+                Bundle bundle = ActivityOptionsCompat.makeCustomAnimation(getApplicationContext(),
+                        android.R.anim.fade_in, android.R.anim.fade_out).toBundle();
+                startActivity(intent,bundle);
+
+            }
+        });
 
 
         //HISTORIQUE
@@ -805,4 +821,78 @@ public class AccueilActivity extends AppCompatActivity {
                 }
             }
         }
+
+        //MESSAGE
+        private class MessageCount extends AsyncTask<Void,Void, JSONArray>{
+        SweetAlertDialog pDialog = new SweetAlertDialog(AccueilActivity.this, SweetAlertDialog.PROGRESS_TYPE);
+        String userId;
+
+            MessageCount(){
+                userId=p.getId();
+            }
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            pDialog.getProgressHelper().setBarColor(Color.parseColor("#66ccff"));
+            pDialog.setTitleText("Chargement");
+            pDialog.setCancelable(false);
+            pDialog.show();
+        }
+
+        @Override
+        protected JSONArray doInBackground(Void... voids) {
+            List params = new ArrayList();
+            //PARAMS : Key - value
+            //  params.add(new BasicNameValuePair("personne_id", p.getId()));
+
+            HttpHandler handler = new HttpHandler();
+
+            //Host : EndPoint
+            String url=Config.HOST+Config.MESSAGE+p.getId();
+            String apiResponse = handler.getHttp(url);
+            System.out.println("TEST RESPONSE"+apiResponse);
+
+            try {
+                if(apiResponse!=null){
+                    return new JSONArray(apiResponse);
+                }
+                else {
+                    throw new JSONException("JSON vide");
+                }
+
+            } catch (JSONException e) {
+                Log.e("Exception json",e.getMessage().toString());
+                e.printStackTrace();
+                return null;
+            }
+        }
+
+        @Override
+        protected void onPostExecute(JSONArray result) {
+            super.onPostExecute(result);
+
+            if(pDialog!=null){
+                pDialog.dismissWithAnimation();
+            }
+
+            //Result is null
+
+            if(result==null){
+//                Toast.makeText(AccueilActivity.this, "Erreur", Toast.LENGTH_SHORT).show();
+            }
+
+            else{
+                //TREATMENT & REDIRECTION
+                try {
+                    sh.saveNofifCount(result.length());
+                    notif.setText(result.length());
+                } catch (Exception e) {
+//                    Toast.makeText(AccueilActivity.this, "Aucun message", Toast.LENGTH_SHORT).show();
+                    e.printStackTrace();
+                }
+
+            }
+        }
+    }
 }

@@ -12,7 +12,9 @@ import android.text.Html;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.qr_niavo.Adaptor.ListeLieuAdaptor;
@@ -20,6 +22,7 @@ import com.example.qr_niavo.Adaptor.ListeTestAdaptor;
 import com.example.qr_niavo.Managers.HttpHandler;
 import com.example.qr_niavo.Models.Lieu;
 import com.example.qr_niavo.Models.Test;
+import com.example.qr_niavo.Service.Session;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -37,6 +40,7 @@ public class ListeLieu extends AppCompatActivity {
     HashMap<String,String> lieuMap;
     Context ctx;
     String jsonListe;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -66,7 +70,6 @@ public class ListeLieu extends AppCompatActivity {
         Bundle bundle=getIntent().getExtras();
         jsonListe="";
         jsonListe=bundle.getString("Resultat");
-
 
 
         //List onClick

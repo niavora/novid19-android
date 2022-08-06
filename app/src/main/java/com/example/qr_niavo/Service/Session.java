@@ -17,6 +17,13 @@ public class Session {
         }
 
 
+        public void saveNofifCount(int nbr){
+            SharedPreferences sharedpreferences = context.getSharedPreferences("user_info", Context.MODE_PRIVATE);
+            SharedPreferences.Editor editor = sharedpreferences.edit();
+            editor.putInt("notif", nbr);
+            editor.commit();
+        }
+
         public void saveUser(JSONObject resultat) throws JSONException {
             //ANRxGAME
             SharedPreferences sharedpreferences = context.getSharedPreferences("user_info", Context.MODE_PRIVATE);
@@ -46,6 +53,11 @@ public class Session {
                     sh.getString("cin", ""),
                     sh.getInt("sexe", 0));
             return m;
+        }
+
+        public int getnotif(){
+            SharedPreferences sh = this.context.getSharedPreferences("user_info", Context.MODE_PRIVATE);
+            return sh.getInt("notif", 0);
         }
 
         public void deleteSession(){

@@ -12,12 +12,15 @@ import android.text.Html;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.qr_niavo.Adaptor.ListeTestAdaptor;
 import com.example.qr_niavo.Managers.HttpHandler;
 import com.example.qr_niavo.Models.Test;
+import com.example.qr_niavo.Service.Session;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -35,6 +38,7 @@ public class ListeTest extends AppCompatActivity {
     HashMap<String,String> listeCentre;
     Context ctx;
     String resultatTestString;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -64,7 +68,6 @@ public class ListeTest extends AppCompatActivity {
         resultatTestString="";
         Bundle bundle=getIntent().getExtras();
         resultatTestString=bundle.getString("Resultat");
-
 
         //List onClick
         this.listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
