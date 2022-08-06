@@ -902,7 +902,7 @@ public class AccueilActivity extends AppCompatActivity {
                 //TREATMENT & REDIRECTION
                 try {
                     sh.saveNofifCount(result.length());
-                    notif.setText(result.length());
+                    notif.setText(result.length()+"");
                 } catch (Exception e) {
 //                    Toast.makeText(AccueilActivity.this, "Aucun message", Toast.LENGTH_SHORT).show();
                     e.printStackTrace();
