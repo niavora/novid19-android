@@ -49,7 +49,7 @@ public class AccueilActivity extends AppCompatActivity {
     TextView testChiffre, lieuChiffre, positifChiffre;
     TextView notif;
     String erreur = "";
-    String listeVaccin;
+    String listeVaccin ="";
 
     /*
         0:TEST
